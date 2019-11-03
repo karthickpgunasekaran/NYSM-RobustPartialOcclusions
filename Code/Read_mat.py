@@ -2,7 +2,7 @@ import scipy.io
 import csv
 
 path = '/Users/nikita/Documents/pythonScripts/cs682Project'
-car_annos = scipy.io.loadmat(path+'/devkit/cars_train_annos.mat') #we can do with entire file instead of devkit
+car_annos = scipy.io.loadmat(path+'/cars_annos.mat') #we can do with entire file instead of devkit
 
 print(car_annos.keys())
 
@@ -12,8 +12,8 @@ print('car_annos["annotations"]',len(car_annos["annotations"][0]))
 
 print('car_annos["annotations"]',car_annos["annotations"][0].dtype)
 
-print('car_annos["annotations"]',car_annos["annotations"][0][0]["bbox_x1"],car_annos["annotations"][0][0]["bbox_x2"], car_annos["annotations"][0][0]["fname"])
-print('car_annos["annotations"]',car_annos["annotations"][0][0]["bbox_y1"],car_annos["annotations"][0][0]["bbox_y2"], car_annos["annotations"][0][0]["fname"])
+print('car_annos["annotations"]',car_annos["annotations"][0][0]["bbox_x1"],car_annos["annotations"][0][0]["bbox_x2"], car_annos["annotations"][0][0]["relative_im_path"])
+print('car_annos["annotations"]',car_annos["annotations"][0][0]["bbox_y1"],car_annos["annotations"][0][0]["bbox_y2"], car_annos["annotations"][0][0]["relative_im_path"])
 
 
 #196 classes
@@ -29,8 +29,9 @@ print('car_annos["annotations"]',car_annos["annotations"][0][0]["bbox_y1"],car_a
 
 #Extracting details for each image
 
-headings =[['bbox_x1','bbox_y1','bbox_x2','bbox_y2','class','fname']]
+# headings =[['bbox_x1','bbox_y1','bbox_x2','bbox_y2','class','fname']] # For devkit train
 
+headings =[['relative_im_path','bbox_x1','bbox_y1','bbox_x2','bbox_y2','class','test']] #For all
 entry=[] # all the image data with each row containing the entire detail as mentioned in headings
 for i in car_annos['annotations'][0]:
     # print(i)
@@ -43,7 +44,7 @@ print(len(entry))
 print(entry[0])
 
 # Writing to csv
-with open(path+"/train_8144.csv", "w", newline="") as f:
+with open(path+"/cars_annos.csv", "w", newline="") as f:
     writer = csv.writer(f)
     writer.writerows(headings)
     writer.writerows(entry)
