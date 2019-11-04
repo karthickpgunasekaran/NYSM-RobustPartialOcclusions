@@ -5,6 +5,8 @@ from os import listdir
 from os.path import isfile, join
 import scipy.io
 from scipy.misc import imresize
+from PIL import Image
+
 patch_size = {30:[166,165],25:[130,127],20:[115,113],15:[100,99],10:[80,81]}
 
 patch_size_new = {}
@@ -13,9 +15,13 @@ bounding_box = {}
 folder_in = "../dataset/car_ims"
 artifact_size = 15 #in terms of percentage between 30 and 10 increments of 5
 folder_out = "../dataset/"+str(artifact_size)+"/cars_ims/"
-artifact_type = 0 #0 -random values for different pixels, 1 - contant value for all pixels, 2- contant value choosen randomly
+artifact_type = 3 #0 -random values for different pixels, 1 - contant value for all pixels, 2- contant value choosen randomly, 3 - image artifacts
 artifact_color = 150
+image_artifact_images_dir = "../dataset/image_artifact_processed/"
+image_artifact_input_dir = "../dataset/image_artifact/"
 bb_file = "../dataset/cars_annos.mat"
+artifact_images =[]
+artifact_images_count=0
 ############################
 
 def initBoundingBoxes(filename):
@@ -47,11 +53,27 @@ def initBoundingBoxes(filename):
         file_id = file_id.lstrip("0")
         #print("key:", file_id)
         bounding_box[file_id] = (key[2],key[1],key[4],key[3])
-
-
+#This function takes any artifact image and converts it into 256*256 image size and saves it to another folder set in image_artifact_images_dir
+def preprocessImageArtifacts():
+    i =0
+    files_list = allFiles(image_artifact_input_dir)
+    for file in files_list:
+        #print(file)
+        img = readImage(image_artifact_input_dir+file)
+        re_img = reshapeImage(img)
+        img = Image.fromarray(re_img)
+        img.save(image_artifact_images_dir + str(i)+ ".jpg")
+        i=i+1
+def loadArtifactsImages():
+    global artifact_images_count
+    files_list = allFiles(image_artifact_images_dir)
+    for file in files_list:
+        img = readImage(image_artifact_images_dir+file)
+        artifact_images.append(img)
+        artifact_images_count=artifact_images_count+1
 
 def readImage(filename):
-    img = plt.imread(folder_in+"/"+filename)
+    img = plt.imread(filename)
     return img
 
 def getRandomStartPoints(x_size,artifact_x,y_size,artifact_y):
@@ -64,6 +86,13 @@ def constantArtifact(artifact_x,artifact_y,value,channels):
     if value>=0 and value<=255:
               return np.ones(shape=(artifact_x,artifact_y,channels))*value
     return np.ones(shape=(artifact_x,artifact_y,channels))*random.randint(0,255)
+def imageArtifact(artifact_x,artifact_y,channels):
+    global artifact_images_count
+    select_id = random.randint(0,artifact_images_count-1)
+    #print("select id:",select_id," artifact cnt:",artifact_images_count)
+    if channels==1:
+        return artifact_images[select_id][0:artifact_x,0:artifact_y,0]
+    return artifact_images[select_id][0:artifact_x,0:artifact_y,:]
 
 def getPatchSize(x_size,y_size):
     if x_size in patch_size_new:
@@ -119,6 +148,9 @@ def createArtifacts(img):
         artifact = constantArtifact(artifact_x,artifact_y,artifact_color,z_axis)
     elif artifact_type==2:
         artifact = constantArtifact(artifact_x,artifact_y,-1,z_axis)
+    elif artifact_type==3:
+        artifact = imageArtifact(artifact_x,artifact_y,z_axis)
+    #print("artifact:",artifact.shape," ",img[start_x:start_x+artifact_x,start_y:start_y+artifact_y,:].shape )
     #print(artifact.shape)
     if z_axis>1:
         img[start_x:start_x+artifact_x,start_y:start_y+artifact_y,:] = artifact[:,:,:]
@@ -128,7 +160,7 @@ def createArtifacts(img):
     return img
 
 
-def allFiles():
+def allFiles(folder_in):
     fileNames = [f for f in listdir(folder_in) if isfile(join(folder_in, f))]
     return fileNames
 
@@ -164,14 +196,21 @@ def getBoundingBox(img,filename):
 def reshapeImage(img):
     #print("size:",img.shape)
     return imresize(img,(256,256))
+
 def controller():
-    filesList = allFiles()
+    filesList = allFiles(folder_in)
+
     print(filesList)
+    filesList.sort()
     #return
     count =0
     for filename in filesList:
-        print("File name:",filename)
-        img = readImage(filename).copy()
+        #print("File name:",filename)
+        #if checkBoundingBoxSize(filename):
+        #    continue
+        img = readImage(folder_in+"/"+filename).copy()
+        if count%100==0:
+            print("Count:",count)
         #check if the bounding box size is within the image size and check check if its more than 256*256 pixels
         if checkBoundingBoxSize(img,filename):
             continue
@@ -187,11 +226,20 @@ def controller():
 
         #reshape to 256*256
         re_img =reshapeImage(bb_img)
+        print("shape:",re_img.shape)
         arti_img = createArtifacts(re_img)
-
-        plt.imshow(arti_img)
+        #print("arti shape:", arti_img.shape)
+        img = Image.fromarray(arti_img)
+        img.save(folder_out+filename)
+        #plt.imshow(arti_img)
         #plt.show()
-        plt.savefig( folder_out + filename)
+        #plt.savefig( folder_out + filename)
         count=count+1
+        del arti_img
+        del bb_img
+        del re_img
+        del img
+#preprocessImageArtifacts()
+loadArtifactsImages()
 initBoundingBoxes(bb_file)
 controller()
