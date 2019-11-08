@@ -91,7 +91,7 @@ def imageArtifact(artifact_x,artifact_y,channels):
     select_id = random.randint(0,artifact_images_count-1)
     #print("select id:",select_id," artifact cnt:",artifact_images_count)
     if channels==1:
-        return artifact_images[select_id][0:artifact_x,0:artifact_y,0]
+        return artifact_images[select_id][0:artifact_x,0:artifact_y,0:1  ]
     return artifact_images[select_id][0:artifact_x,0:artifact_y,:]
 
 def getPatchSize(x_size,y_size):
@@ -226,7 +226,7 @@ def controller():
 
         #reshape to 256*256
         re_img =reshapeImage(bb_img)
-        print("shape:",re_img.shape)
+        print("shape: 1",re_img.shape)
         arti_img = createArtifacts(re_img)
         #print("arti shape:", arti_img.shape)
         img = Image.fromarray(arti_img)
