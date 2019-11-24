@@ -9,19 +9,24 @@ class ImageDataSet(Dataset):
         print('#################',fold,'#############',)
         self.images_dir = images_dir
         if(fold=='test'):
-            self.dataframe = pd.read_csv("./dataset/0/test_mapped.csv")
+            # self.dataframe = pd.read_csv("/content/drive/My Drive/25/test.csv")
+            self.dataframe = pd.read_csv("/content/drive/My Drive/stanford_split/test_mapped.csv")
+
         else:
-             self.dataframe = pd.read_csv("./dataset/0/train_mapped.csv") #mapped class labels file
+            #  self.dataframe = pd.read_csv("/content/drive/My Drive/25/train_mapped.csv") #mapped class labels file
+             self.dataframe = pd.read_csv("/content/drive/My Drive/stanford_split/train_fold.csv") #mapped class labels file
              self.dataframe = self.dataframe[self.dataframe['fold'] == fold] #file contains both val and train as folds
 
         # if fold == 'train':
         #     self.dataframe = self.dataframe[0:40]
         # if fold == 'val':
         #     self.dataframe = self.dataframe[0:10]
-
+        # if fold == 'test':
+        #     self.dataframe = self.dataframe[0:20]
+       
         self.dataframe = self.dataframe.set_index("files")
         self.transform = transformation
-        print(self.dataframe)
+        # print(self.dataframe)
         print('#######################################')
 
     # dataset size
@@ -32,7 +37,7 @@ class ImageDataSet(Dataset):
         # print('get',idx)
         filename = self.dataframe.index[idx] #file name as index
         image = Image.open(os.path.join(self.images_dir, filename)) #get image
-        image = image.resize((224,224))
+        # image = image.resize((224,224))
         image = image.convert('RGB')
         #get label for image
         label = self.dataframe['labels'].iloc[idx]
