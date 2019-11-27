@@ -7,21 +7,23 @@ import scipy.io
 from scipy.misc import imresize
 from PIL import Image
 
-patch_size = {30:[166,165],25:[130,127],20:[115,113],15:[100,99],10:[80,81]}
+patch_size = {30:[125,120],32:[130,127],23:[107,107],13:[80,81]}
 
 patch_size_new = {}
 bounding_box = {}
 #SET THE FOLLOWING VARIABLES
 folder_in = "../dataset/car_ims"
-artifact_size = 15 #in terms of percentage between 30 and 10 increments of 5
-folder_out = "../dataset/"+str(artifact_size)+"/cars_ims/"
-artifact_type = 3 #0 -random values for different pixels, 1 - contant value for all pixels, 2- contant value choosen randomly, 3 - image artifacts
+artifact_size = 23 #in terms of percentage between 30 and 10 increments of 5
+
+artifact_type = 0 #0 -random values for different pixels, 1 - contant value for all pixels, 2- contant value choosen randomly, 3 - image artifacts
+folder_out = "../dataset/"+str(artifact_size)+"/"+str(artifact_type)+"/"
 artifact_color = 150
 image_artifact_images_dir = "../dataset/image_artifact_processed/"
 image_artifact_input_dir = "../dataset/image_artifact/"
 bb_file = "../dataset/cars_annos.mat"
 artifact_images =[]
 artifact_images_count=0
+cropped_image=False
 ############################
 
 def initBoundingBoxes(filename):
@@ -169,14 +171,23 @@ def checkBoundingBoxSize(img,filename):
     if x1>img.shape[0] or y1>img.shape[1]:
         print("bb mismatch:",filename," expected:",x," ",y," ",x1," ",y1," img:",img.shape)
         return True
-    if abs(x1-x)>=245 and abs(y1-y)>=245:
-        return False
-    print("bb size small:", filename)
+    #if abs(x1-x)>=245 and abs(y1-y)>=245:
+    #    return False
+    max_val  =max(abs(x1-x),abs(y1-y))
+    min_val  =min(abs(x1-x),abs(y1-y)) 
+    div = (min_val*1.0)/(max_val*1.0)
+    print("bb size small:", filename,"div:",div," x:",abs(x1-x)," y:",abs(y1-y))
+    if div >= 0.5:
+          return False
+    print("bb size small:", filename,"div:",div," x:",abs(x1-x)," y:",abs(y1-y))
     return True
 
-def getBoundingBox(img,filename):
+def getBoundingBox(img,filename,onlyBox=False):
     x, y, x1, y1 = bounding_box[filename.lstrip("0")]
-    pad_percent =7
+    if onlyBox == True:
+        return x,y,x1,y1
+    
+    pad_percent =2
     pad_val_x = int(pad_percent*((x1-x)/100))
     pad_val_y = int(pad_percent *((y1-y) / 100))
     #print("x:",x," y:",y," x1:",x1," y1:",y1," pad_x:",pad_val_x," pad_y:",pad_val_y)
@@ -193,10 +204,17 @@ def getBoundingBox(img,filename):
     if by > img.shape[1]:
         by = img.shape[1]
     return img[lx:rx,ty:by]
+
 def reshapeImage(img):
     #print("size:",img.shape)
-    return imresize(img,(256,256))
+    return imresize(img,(224,224))
 
+def getUncroppedImage(img,filename):
+    x,y,x1,y1 = getBoundingBox(img,filename,True)
+    total_bounding_pixels = (x1-x)*(y1-y)
+    total_pixels = img.shape[0]*img.shape[1]
+    percent_bounded = (1.0*total_bounding_pixels)/(1.0*total_pixels)
+      
 def controller():
     filesList = allFiles(folder_in)
 
@@ -211,22 +229,22 @@ def controller():
         img = readImage(folder_in+"/"+filename).copy()
         if count%100==0:
             print("Count:",count)
-        #check if the bounding box size is within the image size and check check if its more than 256*256 pixels
-        if checkBoundingBoxSize(img,filename):
-            continue
-
-        #plt.imshow(img)
-        #plt.show()
-
-        #print("file name strip: ",filename.lstrip("0"))
+        #check if the bounding box size is within the image size and check if its more than 256*256 pixels
+        #if checkBoundingBoxSize(img,filename):
+        #    continue
+        '''
+        if cropped_image == False:
+            arti_img = getUncroppedImage(img,filename)     
+        else:
+        '''
         #print("img shape:",img.shape)
         #get the bounding box pixels image from the original image
         bb_img = getBoundingBox(img,filename)
         #print("bb img shape:", bb_img.shape)
-
+        
         #reshape to 256*256
         re_img =reshapeImage(bb_img)
-        print("shape: 1",re_img.shape)
+        #print("shape: 1",re_img.shape)
         arti_img = createArtifacts(re_img)
         #print("arti shape:", arti_img.shape)
         img = Image.fromarray(arti_img)
@@ -240,6 +258,9 @@ def controller():
         del re_img
         del img
 #preprocessImageArtifacts()
-loadArtifactsImages()
-initBoundingBoxes(bb_file)
-controller()
+for i in range(0,4):
+        artifact_type = i #0 -random values for different pixels, 1 - contant value for all pixels, 2- contant value choosen randomly, 3 - image artifacts
+        folder_out = "../dataset/"+str(artifact_size)+"/"+str(artifact_type)+"/"
+        loadArtifactsImages()
+        initBoundingBoxes(bb_file)
+        controller()
