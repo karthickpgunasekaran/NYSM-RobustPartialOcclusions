@@ -357,7 +357,7 @@ print('Training began....')
 def training_phase():
     print('training phase')
     #possible data combinations
-    all_data ={'23':[0,1,2,3],'23':[0,1,2,3],'30':[0,1,2,3],'32':[0,1,2,3]}
+    all_data ={'13':[0,1,2,3],'23':[0,1,2,3],'30':[0,1,2,3],'32':[0,1,2,3]}
     # all_data ={'23':[0,1]}
     for key,value in all_data.items():
         artifact =key
