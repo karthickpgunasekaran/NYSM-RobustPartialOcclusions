@@ -149,8 +149,8 @@ class  Controller:
                            'resnet101':{'lr':0.0001, 'optim':"adam"},
                            'resnet151':{'lr':0.0001, 'optim':"adam"},
                            'googlenet':{'lr':0.0001, 'optim':"adam"},
-                           'unpretrained1':{'lr':0.01, 'optim':"adam"},
-                           'unpretrained2':{'lr':0.01, 'optim':"adam"},
+                           'un_vgg19':{'lr':0.01, 'optim':"sgd"},
+                           'un_resnet50':{'lr':0.0001, 'optim':"adam"},
                            }
 
     def train_all_models(self):
@@ -190,12 +190,16 @@ class  Controller:
             num_features = model.classifier.in_features
             model.classifier = nn.Linear(num_features, self.class_labels)
         # #Without fine tuning
-        elif self.model_type == "unpretrained1":
-            print("unpretrained1")
+        elif self.model_type == "un_vgg19":
+            # print("unpretrained1")
+            model = models.vgg19(pretrained=False)
+            model.classifier[6] = nn.Linear(4096,self.class_labels)
            # set pretrained =False for models
-        elif self.model_type == "unpretrained2":
-            print("unpretrained2")
-            #set pretrained =False for models
+        elif self.model_type == "un_resnet50":
+            # print("unpretrained2")
+            model = models.resnet50(pretrained=False)
+            num_features = model.fc.in_features
+            model.fc = nn.Linear(num_features, self.class_labels)
 
         model = model.to(self.device)
         criterian = nn.CrossEntropyLoss()
