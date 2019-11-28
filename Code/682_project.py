@@ -16,13 +16,14 @@
 #Likewise all
 
 #Maintainig a dict  called all_models for all the models to train with a dict of specs like optim and lr to be used correspondingly
-# self.all_models = {        'vgg19':{'lr':0.01, 'optim':"sgd"},
+# self.all_models = {'vgg19':{'lr':0.01, 'optim':"sgd"},
 #                            'resnet50':{'lr':0.0001, 'optim':"adam"},
 #                            'resnet101':{'lr':0.0001, 'optim':"adam"},
 #                            'resnet151':{'lr':0.0001, 'optim':"adam"},
 #                            'googlenet':{'lr':0.0001, 'optim':"adam"},
-#                            'unpretrained1':{'lr':0.01, 'optim':"adam"},
-#                            'unpretrained2':{'lr':0.01, 'optim':"adam"},
+#                            'densenet121':{'lr':0.0001, 'optim':"adam"},
+#                            'un_vgg19':{'lr':0.01, 'optim':"sgd"},
+#                            'un_resnet50':{'lr':0.0001, 'optim':"adam"},
 #                            }
 # #######
 
@@ -149,6 +150,7 @@ class  Controller:
                            'resnet101':{'lr':0.0001, 'optim':"adam"},
                            'resnet151':{'lr':0.0001, 'optim':"adam"},
                            'googlenet':{'lr':0.0001, 'optim':"adam"},
+                           'densenet121':{'lr':0.0001, 'optim':"adam"},
                            'un_vgg19':{'lr':0.01, 'optim':"sgd"},
                            'un_resnet50':{'lr':0.0001, 'optim':"adam"},
                            }
