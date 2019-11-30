@@ -290,7 +290,71 @@ class  Controller:
             print('Iteration', count)
         acc = float(num_correct) / num_samples
         print('Accuracy of test data :', acc)
+        print('Debug:  Model name:',self.model_type,' occlusion ratio:',self.artifact,' type:',self.artifact_type)
 
+    #### Load all models in the directory and return the latest model epoch which was trained 
+    def load_model(self,model_name):
+            last_ver = -1
+            #load all the models
+            list_models = os.listdir(self.check_point_path)
+            #iterate
+            for m in list_models:
+                 names = m.split("_")
+                 #check if the name matches the current model which we are looking for
+                 if names[0]==model_name:
+                       #update the epoch to latest 
+                       last_ver = max(last_ver,int(names[1]))
+            #No model found with current name model_name in the directory
+            if last_ver ==-1:
+                 return None  
+            print("Returning model version : ",str(last_ver))
+            return self.loadmodel(model_name+"_"+str(last_ver)+"_model.pth")
+
+    def test_all_models(self):
+        print('test_all_models')
+        for model_name,params in self.all_models.items():
+                self.mode_type = model_name 
+                print('@@@@@ MODEL TYPE ',model_name,params,'@@@@@')
+		if self.model_type=="vgg19":
+		    model = models.vgg19(pretrained=False)
+		    model.classifier[6] = nn.Linear(4096,self.class_labels)
+		elif self.model_type=="resnet50":
+		    model = models.resnet50(pretrained=False)
+		    num_features = model.fc.in_features
+		    model.fc = nn.Linear(num_features, self.class_labels)
+		elif self.model_type =="resnet101":
+		    model = models.resnet101(pretrained=False)
+		    num_features = model.fc.in_features
+		    model.fc = nn.Linear(num_features, self.class_labels)
+		elif self.model_type =="resnet151":
+		    model = models.resnet101(pretrained=False)
+		    num_features = model.fc.in_features
+		    model.fc = nn.Linear(num_features, self.class_labels)
+		elif self.model_type =="googlenet":
+		    model = models.googlenet(pretrained=False)
+		    model.classifier = nn.Linear(1000,  self.class_labels)
+		elif self.model_type =="densenet121":
+		    model = models.densenet121(pretrained=False)
+		    num_features = model.classifier.in_features
+		    model.classifier = nn.Linear(num_features, self.class_labels)
+		# #Without fine tuning
+		elif self.model_type == "un_vgg19":
+		    # print("unpretrained1")
+		    model = models.vgg19(pretrained=False)
+		    model.classifier[6] = nn.Linear(4096,self.class_labels)
+		   # set pretrained =False for models
+		elif self.model_type == "un_resnet50":
+		    # print("unpretrained2")
+		    model = models.resnet50(pretrained=False)
+		    num_features = model.fc.in_features
+		    model.fc = nn.Linear(num_features, self.class_labels)
+
+                model = model.to(self.device)
+                model_dict = self.load_model(model_name)
+                if model_dict==None:
+                        print("Model not found !! Model name:",model_name)
+                model.load_state_dict(model_dict)
+                self.predict(model)
 
     def plot_losses_both(self,loss_track1,loss_track2,track1_label="Training Loss",track2_label="Validation loss"):
         ax = plt.subplot(111)
@@ -347,6 +411,23 @@ def training_phase():
             cont.setDevice()
             cont.initialize_data()
             cont.train_all_models() #for this data type train all models
+            print('#####################################')
+
+
+def testing_phase():
+    print('testing phase')
+    #possible data combinations
+    all_data ={'13':[0,1,2,3],'23':[0,1,2,3],'30':[0,1,2,3],'32':[0,1,2,3]}
+    # all_data ={'23':[0,1]}
+    for key,value in all_data.items():
+        artifact =key
+        for artifact_type in value:
+            print('########## DATA TYPE #############')
+            print('artifact',artifact,'artifact',artifact_type)
+            cont = Controller(artifact,artifact_type)
+            cont.setDevice()
+            cont.initialize_data()
+            cont.test_all_models() #for this data type test all models
             print('#####################################')
 
 training_phase()
