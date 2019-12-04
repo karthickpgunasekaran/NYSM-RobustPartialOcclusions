@@ -10,23 +10,23 @@ class ImageDataSet(Dataset):
         self.images_dir = images_dir
         if(fold=='test'):
             # self.dataframe = pd.read_csv("/content/drive/My Drive/25/test.csv")
-            self.dataframe = pd.read_csv("./dataset/final_csvs/test_mapped.csv")
+            self.dataframe = pd.read_csv("/content/drive/My Drive/stanford_split/test_mapped.csv")
 
         else:
             #  self.dataframe = pd.read_csv("/content/drive/My Drive/25/train_mapped.csv") #mapped class labels file
-             self.dataframe = pd.read_csv("./dataset/final_csvs/train_mapped.csv") #mapped class labels file
+             self.dataframe = pd.read_csv("/content/drive/My Drive/stanford_split/train_fold.csv") #mapped class labels file
              self.dataframe = self.dataframe[self.dataframe['fold'] == fold] #file contains both val and train as folds
 
-        if fold == 'train':
-            self.dataframe = self.dataframe[0:10]
-        if fold == 'val':
-            self.dataframe = self.dataframe[0:10]
-        if fold == 'test':
-            self.dataframe = self.dataframe[0:10]
+        # if fold == 'train':
+        #     self.dataframe = self.dataframe[0:40]
+        # if fold == 'val':
+        #     self.dataframe = self.dataframe[0:10]
+        # if fold == 'test':
+        #     self.dataframe = self.dataframe[0:20]
        
         self.dataframe = self.dataframe.set_index("files")
         self.transform = transformation
-        # print(self.dataframe.head())
+        # print(self.dataframe)
         print('#######################################')
 
     # dataset size
@@ -44,4 +44,3 @@ class ImageDataSet(Dataset):
         if self.transform:
             image = self.transform(image)
         return (image,label,filename)
-
