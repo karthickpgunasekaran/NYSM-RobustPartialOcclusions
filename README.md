@@ -11,6 +11,7 @@ b) Figure belows demonstrate the different types of artifacts used in the datase
 ![Different artifacts](Images/diffartifacts.png)
 
 c) Dataset statistics
+![Data stats](Images/dataset_stat.png)
 
 # Results 
 
